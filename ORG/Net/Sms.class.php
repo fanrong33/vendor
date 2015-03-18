@@ -1,8 +1,8 @@
 <?php
 /**
- * 短信接口工具类（smsbao.cn）
+ * 短信接口工具类（for smsbao.cn）
  * @author fanrong33
- * @version v1.0.1 Build 20150211
+ * @version v1.0.2 Build 20150318
  */
 class Sms{
 	
@@ -15,18 +15,23 @@ class Sms{
 	 * @param string 	$phone		
 	 * @param string	$content
 	 * 
-	 * @return bollean false
+	 * @return bollean
 	 */
 	public static function sendSms($mobile, $content){
 		$smsapi   = "http://www.smsbao.com/sms"; // 短信网关
 		$username = "test"; 	// 短信平台帐号
 		$password = "111111";   	// 短信平台密码 
 		
+		// 如果不是UTF-8编码，则进行urlencode
+		if(!self::is_utf8($content)){
+		    $content = urlencode($content);
+		}
+
 		$params = array(
 			'u' => $username,
 			'p' => md5($password),
 			'm' => $mobile,
-			'c' => urlencode($content),
+			'c' => $content,
 		);
 		
 		$code = self::api($smsapi, $params, 'GET');
@@ -51,7 +56,7 @@ class Sms{
 				'data'   => '',
 				'status' => 0,
 				'info'   => $map[$code],
-				'code'   =>  $code,
+				'code'   => $code,
 			);
 			return $result;
 		}
@@ -78,12 +83,23 @@ class Sms{
 			curl_setopt($ci, CURLOPT_POST, true);
 			if($postfields!='')curl_setopt($ci, CURLOPT_POSTFIELDS, $postfields);
 		}
-//		$headers[]="User-Agent: y-lian.com";
+//		$headers[]="User-Agent: fanrong33.com";
 		curl_setopt($ci, CURLOPT_HTTPHEADER		, $headers);
 		curl_setopt($ci, CURLOPT_URL			, $url);
 		$response = curl_exec($ci);
 		curl_close($ci);
 		return $response;
+	}
+	
+	/**
+	 * 判断字符编码是否为UTF8
+	 */
+	static function is_utf8($content){
+        if(preg_match("/^([" .chr(228)."-". chr(233)."]{1}[" .chr (128)."-". chr(191)."]{1}[" .chr (128)."-". chr(191)."]{1}){1}/" ,$content ) == true || preg_match("/([" .chr (228)."-". chr(233)."]{1}[" .chr (128)."-". chr(191)."]{1}[" .chr (128)."-". chr(191)."]{1}){1} $/",$content) == true || preg_match("/([" .chr (228)."-". chr(233)."]{1}[" .chr (128)."-". chr(191)."]{1}[" .chr (128)."-". chr(191)."]{1}){2,}/" , $content) == true){
+            return true;
+        } else{
+            return false;
+        }
 	}
 	
 }
