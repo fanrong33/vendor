@@ -2,25 +2,37 @@
 /**
  * 短信接口工具类（for smsbao.cn）
  * @author fanrong33
- * @version v1.0.2 Build 20150318
+ * @version v1.0.3 Build 20150423
  */
 class Sms{
 	
-	//TODO 对不同类型的业务短信做安全验证，防止短信轰炸机
+	//TODO 对不同类型的业务短信做安全验证，防止短信轰炸机，简单SESSION验证
 	//网站手机验证、APP应用手机验证、订单通知、物流提醒
 	
+	private $_smsapi_url = 'http://www.smsbao.com/sms'; // 短信网关
+	private $_username; // 短信平台帐号
+	private $_password; // 短信平台密码 
+
+	public function __construct($username, $password){
+		$this->_username = $username;
+		$this->_password = $password;
+	}
+
 	/**
 	 * 发送短信
 	 * 
 	 * @param string 	$phone		
 	 * @param string	$content
 	 * 
-	 * @return bollean
+	 * @return array
+	 * array(
+	 * 	   'data'   => '',
+	 * 	   'info'	=> '短信发送成功',
+	 * 	   'status' => 1,
+	 * 	   'code'	=> 30, // status=0 时存在
+	 * )
 	 */
-	public static function sendSms($mobile, $content){
-		$smsapi   = "http://www.smsbao.com/sms"; // 短信网关
-		$username = "test"; 	// 短信平台帐号
-		$password = "111111";   	// 短信平台密码 
+	public function sendSms($mobile, $content){
 		
 		// 如果不是UTF-8编码，则进行urlencode
 		if(!self::is_utf8($content)){
@@ -28,21 +40,19 @@ class Sms{
 		}
 
 		$params = array(
-			'u' => $username,
-			'p' => md5($password),
+			'u' => $this->_username,
+			'p' => md5($this->_password),
 			'm' => $mobile,
 			'c' => $content,
 		);
 		
-		$code = self::api($smsapi, $params, 'GET');
+		$code = self::api($this->_smsapi_url, $params, 'GET');
 		if($code == 0){
 			$result = array(
 				'data'   => '',
 				'status' => 1,
 				'info'   => '短信发送成功',
 			);
-			return $result;
-		}else{
 			$map = array(
 				30 => '密码错误',
 				40 => '账号不存在',
@@ -58,11 +68,11 @@ class Sms{
 				'info'   => $map[$code],
 				'code'   => $code,
 			);
-			return $result;
 		}
+		return $result;
 	}
 	
-	static function api($url, $params, $method='GET'){
+	private function api($url, $params, $method='GET'){
 		// $params['access_token']=$this->access_token;
 		if($method == 'GET'){
 			$result_str = self::http($url.'?'.http_build_query($params));
@@ -73,7 +83,7 @@ class Sms{
 		return $result_str;
 	}
 	
-	static function http($url, $postfields='', $method='GET', $headers=array()){
+	private function http($url, $postfields='', $method='GET', $headers=array()){
 		$ci = curl_init();
 		curl_setopt($ci, CURLOPT_SSL_VERIFYPEER , false); 
 		curl_setopt($ci, CURLOPT_RETURNTRANSFER , true);
@@ -94,7 +104,7 @@ class Sms{
 	/**
 	 * 判断字符编码是否为UTF8
 	 */
-	static function is_utf8($content){
+	private function is_utf8($content){
         if(preg_match("/^([" .chr(228)."-". chr(233)."]{1}[" .chr (128)."-". chr(191)."]{1}[" .chr (128)."-". chr(191)."]{1}){1}/" ,$content ) == true || preg_match("/([" .chr (228)."-". chr(233)."]{1}[" .chr (128)."-". chr(191)."]{1}[" .chr (128)."-". chr(191)."]{1}){1} $/",$content) == true || preg_match("/([" .chr (228)."-". chr(233)."]{1}[" .chr (128)."-". chr(191)."]{1}[" .chr (128)."-". chr(191)."]{1}){2,}/" , $content) == true){
             return true;
         } else{
