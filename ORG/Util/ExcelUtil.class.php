@@ -2,20 +2,69 @@
 /**
  * 基于PHPExcel的Excel处理 工具类
  * 特性：
- *  - 支持通过表头格式化内容
+ *  - 导入:
+ *  - 支持通过表头配置导入excel文件得到格式化数组
+ *  - 导出:
+ *  - 支持通过表头导出格式化内容的excel文件
  *  - 支持通过表头过滤筛选是否显示单元格列
  * 
  * @author fanrong33
- * @version v1.1.1 Build 20150428
+ * @version v1.1.2 Build 20150428
  */
 class ExcelUtil{
 	
 	/**
-	 * 导入数据，将Excel文件转换成数组
+	 * 导入xls文件，将Excel文件转换成数组，适配器模式包装，支持表头配置文件组装row
+	 * 依赖 import()方法
+	 *  $header_map = array(
+     *      'id'          => 'ID',
+     *      'name'        => '姓名',
+     *      'age'         => '年龄',
+     *      'percent'     => array('title'=>'坚持率',  'sprintf' => "%d%%"),
+     *      'wage'        => array('title'=>'工资',    'number_format' => 2), // 2 or 0 默认为., number_format($number, 2, '.', '')
+     *      'status'      => array('title'=>'状态',    'enum' => array(1=>'正常', 2=>'锁定')),
+     *      'create_time' => array('title'=>'创建时间', 'date'=>'Y-m-d H:i:s'),
+     * );
+	 * 
+	 * @param array  	$header_map  导出文件Excel标题HashMap，对应字段名=>别名，支持格式化!
+	 * @param string	$excel_file  xls文件
+	 * @return array    $list  		 导出的原始数据列表
+	 */
+	public static function importDecorator($header_map, $excel_file){
+
+        $sheet = self::import($excel_file, true); // 去掉标题
+
+		// 过滤重组得到 $header_map
+        $tmp_header_map = array();
+        foreach ($header_map as $field => $format) {
+            if(is_array($format)){
+                $tmp_header_map[$field] = $format['title'];
+            }else{
+                $tmp_header_map[$field] = $format;
+            }
+        }
+
+        // 为list组装key
+        $tmp_list = array();
+        foreach ($sheet as $row) {
+        	if($row){
+	            $row = array_combine(array_keys($tmp_header_map), $row);
+	            $tmp_list[] = $row;
+        	}
+        }
+        $list = $tmp_list;
+        unset($tmp_header_map, $tmp_list);
+
+		return $list;
+	}
+
+
+	/**
+	 * 导入xls文件，将Excel文件转换成数组，原始基础方法
 	 * 
 	 * @param string	$excel_file  	xls文件
 	 * @param boolean	$remove_title	是否去掉标题
-	 * @return mixed $sheet
+	 * @return array $sheet
 	 */
 	public static function import($excel_file, $remove_title=true){
 		
@@ -26,7 +75,7 @@ class ExcelUtil{
 		if(!$reader->canRead($excel_file)){
 			$reader = new PHPExcel_Reader_Excel5();
 			if(!$reader->canRead($excel_file))
-				$this->error('对不起，该Excel文件无法读取！');
+				exit('对不起，该Excel文件无法读取！');
 		}
 		$excel = $reader->load($excel_file);
 		$sheet = $excel->getSheet()->toArray();
@@ -196,6 +245,6 @@ class ExcelUtil{
 
 /**
  * TODO:
- * 1. 单元格宽度自适应内容
+ * 1. 导出Excel单元格宽度自适应内容
  */
 ?>
