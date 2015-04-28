@@ -13,18 +13,18 @@
  */
 class ExcelUtil{
 	
-	/**
+    /**
 	 * 导入xls文件，将Excel文件转换成数组，适配器模式包装，支持表头配置文件组装row
 	 * 依赖 import()方法
 	 *  $header_map = array(
-     *      'id'          => 'ID',
-     *      'name'        => '姓名',
-     *      'age'         => '年龄',
-     *      'percent'     => array('title'=>'坚持率',  'sprintf' => "%d%%"),
-     *      'wage'        => array('title'=>'工资',    'number_format' => 2), // 2 or 0 默认为., number_format($number, 2, '.', '')
-     *      'status'      => array('title'=>'状态',    'enum' => array(1=>'正常', 2=>'锁定')),
-     *      'create_time' => array('title'=>'创建时间', 'date'=>'Y-m-d H:i:s'),
-     * );
+	 *      'id'          => 'ID',
+	 *      'name'        => '姓名',
+	 *      'age'         => '年龄',
+	 *      'percent'     => array('title'=>'坚持率',  'sprintf' => "%d%%"),
+	 *      'wage'        => array('title'=>'工资',    'number_format' => 2), // 2 or 0 默认为., number_format($number, 2, '.', '')
+	 *      'status'      => array('title'=>'状态',    'enum' => array(1=>'正常', 2=>'锁定')),
+	 *      'create_time' => array('title'=>'创建时间', 'date'=>'Y-m-d H:i:s'),
+	 * );
 	 * 
 	 * @param array  	$header_map  导出文件Excel标题HashMap，对应字段名=>别名，支持格式化!
 	 * @param string	$excel_file  xls文件
