@@ -6,7 +6,7 @@
  *  - 支持通过表头过滤筛选是否显示单元格列
  * 
  * @author fanrong33
- * @version v1.1.0 Build 20150428
+ * @version v1.1.1 Build 20150428
  */
 class ExcelUtil{
 	
@@ -53,10 +53,11 @@ class ExcelUtil{
 	 * 
 	 * @param array  	$header_map 导出文件Excel标题HashMap，对应字段名=>别名，支持格式化!
 	 * @param array 	$list       待导出的原始数据列表
-	 * @param string	$filename	导出的文件名
+	 * @param string	$filename	导出的文件名，当$download=false时，$filename需要具体到保存的路径
+	 * @param boolean   $download   是否导出为下载，默认是
 	 * @return 下载文件 或者 excel文件名
 	 */
-	public static function exportDecorator($header_map, $list, $filename){
+	public static function exportDecorator($header_map, $list, $filename, $download=true){
 		// 根据格式重构 $list
         $tmp_list       = array();
         foreach($list as $key => $rs){
@@ -106,7 +107,7 @@ class ExcelUtil{
         $list = $tmp_list;
         unset($tmp_header_map, $tmp_list);
 
-        self::export($header_map, $list, $filename='用户名单列表');
+        return self::export($header_map, $list, $filename, $download);
 	}
 	
 	/**
@@ -114,7 +115,8 @@ class ExcelUtil{
 	 * 
 	 * @param array 	$header_map	导出文件Excel标题HashMap，对应字段名=>别名，不支持格式化
 	 * @param array 	$list 		待导出的原始数据列表
-	 * @param string	$filename	导出的文件名
+	 * @param string	$filename	导出的文件名，当$download=false时，$filename需要具体到保存的路径
+	 * @param boolean   $download   是否导出为下载，默认是
 	 * @return 下载文件 或者 excel文件名
 	 */
 	public static function export($header_map, $list, $filename='', $download=true){
@@ -184,8 +186,9 @@ class ExcelUtil{
 			$writer->save('php://output');
 		}else{
 			// 保存表格
+			$filename = iconv('gb2312', 'utf-8', $filename);
 			$writer->save($filename.'.xls');
-			return iconv('gb2312', 'utf-8', $filename).'.xls';
+			return $filename.'.xls';
 		}
 	}
 	
