@@ -1,59 +1,140 @@
 <?php
-
-// +----------------------------------------------------------------------
-// | ThinkPHP [ WE CAN DO IT JUST THINK IT ]
-// +----------------------------------------------------------------------
-// | Copyright (c) 2009 http://thinkphp.cn All rights reserved.
-// +----------------------------------------------------------------------
-// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
-// +----------------------------------------------------------------------
-// | Author: liu21st <liu21st@gmail.com>
-// +----------------------------------------------------------------------
-// $Id$
-
 /**
-  +------------------------------------------------------------------------------
  * 图像操作类库
-  +------------------------------------------------------------------------------
- * @category   ORG
- * @package  ORG
+ * @category    ORG
+ * @package     ORG
  * @subpackage  Util
- * @author    liu21st <liu21st@gmail.com>
- * @version   $Id$
-  +------------------------------------------------------------------------------
+ * @author      fanrong33 <fanrong33@qq.com>
+ * @version     1.1.0 build 20150516
  */
-class Image {//类定义开始
+class Image { //类定义开始
 
     /**
-      +----------------------------------------------------------
      * 取得图像信息
      *
-      +----------------------------------------------------------
      * @static
-     * @access public
-      +----------------------------------------------------------
      * @param string $image 图像文件名
-      +----------------------------------------------------------
      * @return mixed
-      +----------------------------------------------------------
      */
-
     static function getImageInfo($img) {
         $imageInfo = getimagesize($img);
         if ($imageInfo !== false) {
             $imageType = strtolower(substr(image_type_to_extension($imageInfo[2]), 1));
             $imageSize = filesize($img);
             $info = array(
-                "width" => $imageInfo[0],
+                "width"  => $imageInfo[0],
                 "height" => $imageInfo[1],
-                "type" => $imageType,
-                "size" => $imageSize,
-                "mime" => $imageInfo['mime']
+                "type"   => $imageType,
+                "size"   => $imageSize,
+                "mime"   => $imageInfo['mime']
             );
             return $info;
         } else {
             return false;
         }
+    }
+
+    /**
+     * 裁剪图片
+     * @param resource  $srcImg     图像资源
+     * @param array     $coords     裁剪的起始坐标和宽度高度
+     * @param integer   $cropWidth  裁剪后的宽度
+     * @param integer   $cropHeight 裁剪后的高度
+     * @return resource $cropImg    裁剪后的图像资源
+     */
+    public static function crop($srcImg, $coords, $cropWidth, $cropHeight){
+      
+      $cropImg = imagecreatetruecolor( $cropWidth, $cropHeight);
+      
+      //计算比例
+      $rx = $cropWidth / $coords['w'];
+      $ry = $cropHeight / $coords['h'];
+      
+      //取得缩放后的宽和高
+      $zoomWidth = abs((int)Math.round($rx * imagesx($srcImg)));
+      $zoomHeight = abs((int)Math.round($ry * imagesy($srcImg)));
+        
+      //取得缩放的图片
+      $zoomImg = imagecreatetruecolor($zoomWidth, $zoomHeight);
+      imagecopyresampled($zoomImg,$srcImg,0,0,0,0,$zoomWidth, $zoomHeight, imagesx($srcImg), imagesy($srcImg));
+        
+      //取得缩放图片的相对位置
+      $cropX = abs((int)Math.round($rx * $coords['x']));
+      $cropY = abs((int)Math.round($ry * $coords['y']));
+        
+      imagecopyresampled($cropImg, $zoomImg, 0, 0, $cropX, $cropY, $cropWidth, $cropHeight, $cropWidth, $cropHeight);
+      return $cropImg;
+    }
+
+    /**
+     * 将图片裁剪为正方形的头像
+     * @param  [type] $srcImg    [description]
+     * @param  [type] $crop_size [description]
+     * @return [type]            [description]
+     */
+    public static function crop2avatar($local_image_file, $crop_size){
+        $info = self::getImageInfo($local_image_file);
+
+        $size = $info['width'];
+        $x = 0;
+        $y = 0;
+        if($info['width'] > $info['height']){
+            $size = $info['height'];
+            $x = abs((int)Math.round(($info['width']-$info['height'])/2));
+        }else{
+            $y = abs((int)Math.round(($info['height']-$info['width'])/2));
+        }
+        
+        $image_function='imagecreatefrom'.$info['type'];
+        $im = $image_function($local_image_file);
+        
+        $coords = array(
+            'x' => $x,
+            'y' => $y,
+            'w' => $size,
+            'h' => $size,
+        );
+        
+        $pos = strrpos($local_image_file, '/');
+        $save_path = substr($local_image_file, 0, $pos+1);
+        
+
+        $crop_im = self::crop($im, $coords, $crop_size, $crop_size);
+        self::output($crop_im, 'jpeg', $save_path.$crop_size.'.jpg', 100);
+    }
+
+
+    /**
+     +----------------------------------------------------------
+     * 限制最大宽高进行缩放图像
+     *
+     +----------------------------------------------------------
+     * @static
+     * @access public
+     +----------------------------------------------------------
+     * @param string $img 图像资源
+     * @param string $maxWidth 最大宽度
+     * @param string $maxHeight 最大高度
+     +----------------------------------------------------------
+     * @return mixed
+     +----------------------------------------------------------
+     */
+    public static function resize($img, $maxWidth, $maxHight){
+      $width = imagesx($img);
+      $height = imagesy($img);
+      if($width >= $height){
+        $zoomWidth = $maxWidth;
+        $ratio = $maxWidth / $width;
+        $zoomHeight = abs((int)Math.round($ratio * $height));
+      }else{
+        $zoomHeight = $maxHight;
+        $ratio = $maxHight / $height;
+        $zoomWidth = abs((int)Math.round($ratio * $width));
+      }
+      
+      $zoomImg = imagecreatetruecolor($zoomWidth, $zoomHeight);
+      imagecopyresampled($zoomImg, $img, 0, 0, 0, 0, $zoomWidth, $zoomHeight, $width, $height);
+      return $zoomImg;
     }
 
     /**
@@ -74,9 +155,8 @@ class Image {//类定义开始
      */
     static public function water($source, $water, $savename=null, $alpha=80) {
         //检查文件是否存在
-        if (!file_exists($source) || !file_exists($water)){
+        if (!file_exists($source) || !file_exists($water))
             return false;
-        }
 
         //图片信息
         $sInfo = self::getImageInfo($source);
@@ -100,7 +180,7 @@ class Image {//类定义开始
         $posX = $sInfo["width"] - $wInfo["width"];
 
         //生成混合图像
-        self::imagecopymerge_alpha($sImage, $wImage, $posX, $posY, 0, 0, $wInfo['width'], $wInfo['height'], $alpha);
+        imagecopymerge($sImage, $wImage, $posX, $posY, 0, 0, $wInfo['width'], $wInfo['height'], $alpha);
 
         //输出图像
         $ImageFun = 'Image' . $sInfo['type'];
@@ -110,27 +190,8 @@ class Image {//类定义开始
             @unlink($source);
         }
         //保存图像
-        $ImageFun($sImage, $savename, 100);
+        $ImageFun($sImage, $savename);
         imagedestroy($sImage);
-    }
-	
-	static function imagecopymerge_alpha($dst_im, $src_im, $dst_x, $dst_y, $src_x, $src_y, $src_w, $src_h, $pct){
-        $opacity=$pct;
-        // getting the watermark width
-        $w = imagesx($src_im);
-        // getting the watermark height
-        $h = imagesy($src_im);
-             
-        // creating a cut resource
-        $cut = imagecreatetruecolor($src_w, $src_h);
-        // copying that section of the background to the cut
-        imagecopy($cut, $dst_im, 0, 0, $dst_x, $dst_y, $src_w, $src_h);
-        // inverting the opacity
-        //$opacity = 100 - $opacity;
-             
-        // placing the watermark now
-        imagecopy($cut, $src_im, 0, 0, $src_x, $src_y, $src_w, $src_h);
-        imagecopymerge($dst_im, $cut, $dst_x, $dst_y, $src_x, $src_y, $src_w, $src_h, $opacity);
     }
 
     function showImg($imgFile, $text='', $x='10', $y='10', $alpha='50') {
@@ -579,13 +640,14 @@ class Image {//类定义开始
         Image::output($im, $type);
     }
 
-    static function output($im, $type='png', $filename='') {
-        header("Content-type: image/" . $type);
-        $ImageFun = 'image' . $type;
+
+    static function output($im, $type='png', $filename='', $quality='100') {
+        $image_fun = 'image' . $type;
         if (empty($filename)) {
-            $ImageFun($im);
+            header("Content-type: image/" . $type);
+            $image_fun($im);
         } else {
-            $ImageFun($im, $filename);
+            $image_fun($im, $filename);
         }
         imagedestroy($im);
     }
