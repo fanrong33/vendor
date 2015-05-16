@@ -1,43 +1,22 @@
 <?php
-// +----------------------------------------------------------------------
-// | ThinkPHP [ WE CAN DO IT JUST THINK IT ]
-// +----------------------------------------------------------------------
-// | Copyright (c) 2009 http://thinkphp.cn All rights reserved.
-// +----------------------------------------------------------------------
-// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
-// +----------------------------------------------------------------------
-// | Author: liu21st <liu21st@gmail.com>
-// +----------------------------------------------------------------------
-// $Id$
-
 /**
- +------------------------------------------------------------------------------
  * Http 工具类
  * 提供一系列的Http方法
- +------------------------------------------------------------------------------
- * @category   ORG
- * @package  ORG
+ * @category    ORG
+ * @package     ORG
  * @subpackage  Net
- * @author    liu21st <liu21st@gmail.com>
- * @version   $Id$
- +------------------------------------------------------------------------------
+ * @author      liu21st <liu21st@gmail.com>, fanrong33 <fanrong33@qq.com>
+ * @version     1.0.1 build 20150516
  */
-class Http
-{//类定义开始
+class Http{//类定义开始
 
     /**
-     +----------------------------------------------------------
      * 采集远程文件
-     +----------------------------------------------------------
-     * @access public
-     +----------------------------------------------------------
      * @param string $remote 远程文件名
      * @param string $local 本地保存文件名
-     +----------------------------------------------------------
      * @return mixed
-     +----------------------------------------------------------
      */
-    static public function curl_download($remote,$local) {
+    static public function curl_download($remote, $local) {
         $cp = curl_init($remote);
         $fp = fopen($local,"w");
         curl_setopt($cp, CURLOPT_FILE, $fp);
@@ -48,14 +27,9 @@ class Http
     }
 
    /**
-    +-----------------------------------------------------------
     * 使用 fsockopen 通过 HTTP 协议直接访问(采集)远程文件
     * 如果主机或服务器没有开启 CURL 扩展可考虑使用
     * fsockopen 比 CURL 稍慢,但性能稳定
-    +-----------------------------------------------------------
-    * @static
-    * @access public
-    +-----------------------------------------------------------
     * @param string $url 远程URL
     * @param array $conf 其他配置信息
     *        int   limit 分段读取字符个数
@@ -64,9 +38,7 @@ class Http
     *        string ip    如果该参数传入,$url将不被使用,ip访问优先
     *        int    timeout 采集超时时间
     *        bool   block 是否阻塞访问,默认为true
-    +-----------------------------------------------------------
     * @return mixed
-    +-----------------------------------------------------------
     */
     static public function fsockopen_download($url, $conf = array()) {
         $return = '';
@@ -150,25 +122,17 @@ class Http
     }
 
     /**
-     +----------------------------------------------------------
      * 下载文件
      * 可以指定下载显示的文件名，并自动发送相应的Header信息
      * 如果指定了content参数，则下载该参数的内容
-     +----------------------------------------------------------
-     * @static
-     * @access public
-     +----------------------------------------------------------
      * @param string $filename 下载文件名
      * @param string $showname 下载显示的文件名
      * @param string $content  下载的内容
      * @param integer $expire  下载内容浏览器缓存时间
-     +----------------------------------------------------------
      * @return void
-     +----------------------------------------------------------
      * @throws ThinkExecption
-     +----------------------------------------------------------
      */
-    static public function download ($filename, $showname='',$content='',$expire=180) {
+    static public function download($filename, $showname='',$content='',$expire=180) {
         if(is_file($filename)) {
             $length = filesize($filename);
         }elseif(is_file(UPLOAD_PATH.$filename)) {
@@ -186,7 +150,7 @@ class Http
 		if(!empty($filename)) {
 	        $type = mime_content_type($filename);
 		}else{
-			$type	 =	 "application/octet-stream";
+			$type = "application/octet-stream";
 		}
         //发送Http Header信息 开始下载
         header("Pragma: public");
@@ -208,14 +172,10 @@ class Http
     }
 
     /**
-     +----------------------------------------------------------
      * 显示HTTP Header 信息
-     +----------------------------------------------------------
      * @return string
-     +----------------------------------------------------------
      */
-    static function get_header_info($header='',$echo=true)
-    {
+    static function get_header_info($header='',$echo=true){
         ob_start();
         $headers   = getallheaders();
         if(!empty($header)) {
@@ -298,13 +258,11 @@ class Http
 		}
 	}
 }//类定义结束
+
 if( !function_exists ('mime_content_type')) {
     /**
-     +----------------------------------------------------------
      * 获取文件的mime_content类型
-     +----------------------------------------------------------
      * @return string
-     +----------------------------------------------------------
      */
     function mime_content_type($filename)
     {
