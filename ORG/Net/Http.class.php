@@ -6,9 +6,23 @@
  * @package     ORG
  * @subpackage  Net
  * @author      liu21st <liu21st@gmail.com>, fanrong33 <fanrong33@qq.com>
- * @version     1.0.1 build 20150516
+ * @version     1.0.2 build 20150516
  */
 class Http{//类定义开始
+
+    /**
+     * 比file_get_contents稳定的多！$timeout为超时时间，单位是秒，默认为10s
+     * 仅用于获取网络上的数据，不能用于获取本地文件内容
+     */
+    function curl_get_contents($url, $timeout=10){
+        $ci = curl_init();
+        curl_setopt($ci, CURLOPT_URL, $url);
+        curl_setopt($ci, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ci, CURLOPT_TIMEOUT, $timeout);
+        $result = curl_exec($ci);
+        curl_close($ci);
+        return $result;
+    }
 
     /**
      * 采集远程文件
@@ -17,12 +31,12 @@ class Http{//类定义开始
      * @return mixed
      */
     static public function curl_download($remote, $local) {
-        $cp = curl_init($remote);
+        $ci = curl_init($remote);
         $fp = fopen($local,"w");
-        curl_setopt($cp, CURLOPT_FILE, $fp);
-        curl_setopt($cp, CURLOPT_HEADER, 0);
-        curl_exec($cp);
-        curl_close($cp);
+        curl_setopt($ci, CURLOPT_FILE, $fp); // !
+        curl_setopt($ci, CURLOPT_HEADER, 0);
+        curl_exec($ci);
+        curl_close($ci);
         fclose($fp);
     }
 
