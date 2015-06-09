@@ -21,8 +21,8 @@ class Sms{
 	/**
 	 * 发送短信
 	 * 
-	 * @param string 	$phone		
-	 * @param string	$content
+	 * @param string  	$phone	  电话号码
+	 * @param string	$content  发送内容
 	 * 
 	 * @return array
 	 * array(
