@@ -2,7 +2,7 @@
 /**
  * 短信接口工具类（for smsbao.cn）
  * @author fanrong33
- * @version v1.0.3 Build 20150423
+ * @version v1.0.4 Build 20150719
  */
 class Sms{
 	
@@ -53,6 +53,7 @@ class Sms{
 				'status' => 1,
 				'info'   => '短信发送成功',
 			);
+		}else{
 			$map = array(
 				30 => '密码错误',
 				40 => '账号不存在',
