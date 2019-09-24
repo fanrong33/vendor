@@ -8,7 +8,6 @@
  * @version     1.1.1 build 20150516
  */
 class Image { //类定义开始
-
     /**
      * 取得图像信息
      *
@@ -33,7 +32,6 @@ class Image { //类定义开始
             return false;
         }
     }
-
     /**
      * 裁剪图片
      * @param resource  $srcImg     图像资源
@@ -65,7 +63,6 @@ class Image { //类定义开始
       imagecopyresampled($cropImg, $zoomImg, 0, 0, $cropX, $cropY, $cropWidth, $cropHeight, $cropWidth, $cropHeight);
       return $cropImg;
     }
-
     /**
      * 将图片裁剪为正方形的头像
      * @param  [type] $srcImg    [description]
@@ -84,10 +81,9 @@ class Image { //类定义开始
         }else{
             $y = abs((int)Math.round(($info['height']-$info['width'])/2));
         }
-        
+
         $image_function='imagecreatefrom'.$info['type'];
         $im = $image_function($local_image_file);
-        
         $coords = array(
             'x' => $x,
             'y' => $y,
@@ -97,13 +93,14 @@ class Image { //类定义开始
         
         $pos = strrpos($local_image_file, '/');
         $save_path = substr($local_image_file, 0, $pos+1);
+        $pathinfo = pathinfo($local_image_file);
         
 
         $crop_im = self::crop($im, $coords, $crop_size, $crop_size);
-        self::output($crop_im, 'jpeg', $save_path.$crop_size.'.jpg', 100);
+        $filename = $save_path.$pathinfo['filename'].'_'.$crop_size.'.jpg';
+        self::output($crop_im, 'jpeg', $save_path.$pathinfo['filename'].'_'.$crop_size.'.jpg', 250);
+        return $filename;
     }
-
-
     /**
      * 限制最大宽高进行缩放图像
      *
@@ -129,7 +126,6 @@ class Image { //类定义开始
       imagecopyresampled($zoomImg, $img, 0, 0, 0, 0, $zoomWidth, $zoomHeight, $width, $height);
       return $zoomImg;
     }
-
     /**
      * 为图片添加水印
      * @param string $source 原文件名
@@ -143,31 +139,24 @@ class Image { //类定义开始
         //检查文件是否存在
         if (!file_exists($source) || !file_exists($water))
             return false;
-
         //图片信息
         $sInfo = self::getImageInfo($source);
         $wInfo = self::getImageInfo($water);
-
         //如果图片小于水印图片，不生成图片
         if ($sInfo["width"] < $wInfo["width"] || $sInfo['height'] < $wInfo['height'])
             return false;
-
         //建立图像
         $sCreateFun = "imagecreatefrom" . $sInfo['type'];
         $sImage = $sCreateFun($source);
         $wCreateFun = "imagecreatefrom" . $wInfo['type'];
         $wImage = $wCreateFun($water);
-
         //设定图像的混色模式
         imagealphablending($wImage, true);
-
         //图像位置,默认为右下角右对齐
         $posY = $sInfo["height"] - $wInfo["height"];
         $posX = $sInfo["width"] - $wInfo["width"];
-
         //生成混合图像
         imagecopymerge($sImage, $wImage, $posX, $posY, 0, 0, $wInfo['width'], $wInfo['height'], $alpha);
-
         //输出图像
         $ImageFun = 'Image' . $sInfo['type'];
         //如果没有给出保存文件名，默认为原图像名
@@ -179,7 +168,6 @@ class Image { //类定义开始
         $ImageFun($sImage, $savename);
         imagedestroy($sImage);
     }
-
     function showImg($imgFile, $text='', $x='10', $y='10', $alpha='50') {
         //获取图像文件信息
         //2007/6/26 增加图片水印输出，$text为图片的完整路径即可
@@ -200,7 +188,7 @@ class Image { //类定义开始
                         //$waterMark=imagecolorallocatealpha($text,255,255,0,50);
                         $imgW = $info["width"];
                         $imgH = $info["width"] * $textInfo["height"] / $textInfo["width"];
-                        //$y	=	($info["height"]-$textInfo["height"])/2;
+                        //$y    =   ($info["height"]-$textInfo["height"])/2;
                         //设置水印的显示位置和透明度支持各种图片格式
                         imagecopymerge($im, $waterMark, $x, $y, 0, 0, $textInfo['width'], $textInfo['height'], $alpha);
                     } else {
@@ -218,7 +206,6 @@ class Image { //类定义开始
                 @ImageDestroy($im);
                 return;
             }
-
             //保存图像
             $ImageFun($sImage, $savename);
             imagedestroy($sImage);
@@ -232,7 +219,6 @@ class Image { //类定义开始
             return;
         }
     }
-
     /**
      * 生成缩略图
      * @param string $image  原图
@@ -264,17 +250,14 @@ class Image { //类定义开始
                 $width = (int) ($srcWidth * $scale);
                 $height = (int) ($srcHeight * $scale);
             }
-
             // 载入原图
             $createFun = 'ImageCreateFrom' . ($type == 'jpg' ? 'jpeg' : $type);
             $srcImg = $createFun($image);
-
             //创建缩略图
             if ($type != 'gif' && function_exists('imagecreatetruecolor'))
                 $thumbImg = imagecreatetruecolor($width, $height);
             else
                 $thumbImg = imagecreate($width, $height);
-
             // 复制图片
             if (function_exists("ImageCopyResampled"))
                 imagecopyresampled($thumbImg, $srcImg, 0, 0, 0, 0, $width, $height, $srcWidth, $srcHeight);
@@ -286,11 +269,9 @@ class Image { //类定义开始
                 $background_color = imagecolorallocate($thumbImg, 0, 255, 0);  //  指派一个绿色
                 imagecolortransparent($thumbImg, $background_color);  //  设置为透明色，若注释掉该行则输出绿色的图
             }
-
             // 对jpeg图形设置隔行扫描
             if ('jpg' == $type || 'jpeg' == $type)
                 imageinterlace($thumbImg, $interlace);
-
             //$gray=ImageColorAllocate($thumbImg,255,0,0);
             //ImageString($thumbImg,2,5,5,"ThinkPHP",$gray);
             // 生成图片
@@ -302,7 +283,6 @@ class Image { //类定义开始
         }
         return false;
     }
-
     /**
      * 根据给定的字符串生成图像
      * @param string $string  字符串
@@ -338,7 +318,6 @@ class Image { //类定义开始
         $backColor = imagecolorallocate($im, 255, 255, 255);    //背景色（随机）
         $borderColor = imagecolorallocate($im, 100, 100, 100);                    //边框色
         $pointColor = imagecolorallocate($im, mt_rand(0, 255), mt_rand(0, 255), mt_rand(0, 255));                 //点颜色
-
         @imagefilledrectangle($im, 0, 0, $width - 1, $height - 1, $backColor);
         @imagerectangle($im, 0, 0, $width - 1, $height - 1, $borderColor);
         @imagestring($im, 5, 5, 3, $string, $color);
@@ -356,7 +335,6 @@ class Image { //类定义开始
         }
         Image::output($im, $type, $filename);
     }
-
     /**
      * 生成图像验证码
      * @param string $length  位数
@@ -380,11 +358,9 @@ class Image { //类定义开始
         $g = Array(225, 236, 237, 255);
         $b = Array(225, 236, 166, 125);
         $key = mt_rand(0, 3);
-
         $backColor = imagecolorallocate($im, $r[$key], $g[$key], $b[$key]);    //背景色（随机）
         $borderColor = imagecolorallocate($im, 100, 100, 100);                    //边框色
         $pointColor = imagecolorallocate($im, mt_rand(0, 255), mt_rand(0, 255), mt_rand(0, 255));                 //点颜色
-
         @imagefilledrectangle($im, 0, 0, $width - 1, $height - 1, $backColor);
         @imagerectangle($im, 0, 0, $width - 1, $height - 1, $borderColor);
         $stringColor = imagecolorallocate($im, mt_rand(0, 200), mt_rand(0, 120), mt_rand(0, 120));
@@ -403,7 +379,6 @@ class Image { //类定义开始
 //        @imagestring($im, 5, 5, 3, $randval, $stringColor);
         Image::output($im, $type);
     }
-
     // 中文验证码
     static function GBVerify($length=4, $type='png', $width=180, $height=50, $fontface='simhei.ttf', $verifyName='verify') {
         import('ORG.Util.String');
@@ -434,7 +409,6 @@ class Image { //类定义开始
         }
         Image::output($im, $type);
     }
-
     /**
      * 把图像转换成字符显示
      * @param string $image  要显示的图像
@@ -469,7 +443,6 @@ class Image { //类定义开始
         }
         return false;
     }
-
     /**
      * 生成高级图像验证码
      * @static
@@ -510,7 +483,6 @@ class Image { //类定义开始
         imagestring($im, 5, 5, 20, $letter, $stringColor);
         Image::output($im, $type);
     }
-
     /**
      * 生成UPC-A条形码
      * @param string $type 图像格式
@@ -586,8 +558,6 @@ class Image { //类定义开始
         /* Output the Header and Content. */
         Image::output($im, $type);
     }
-
-
     static function output($im, $type='png', $filename='', $quality='100') {
         $image_fun = 'image' . $type;
         if (empty($filename)) {
@@ -598,8 +568,6 @@ class Image { //类定义开始
         }
         imagedestroy($im);
     }
-
 }
-
 //类定义结束
 ?>
